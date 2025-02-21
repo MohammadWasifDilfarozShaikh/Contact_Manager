@@ -10,13 +10,22 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json()); // For parsing JSON
 app.use(cors()); // Enable CORS
 
+// Check if MONGO_URI is set
+if (!process.env.MONGO_URI) {
+    console.error("Error: MONGO_URI is not defined in .env file");
+    process.exit(1);
+}
+
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
 .then(() => console.log("MongoDB Connected"))
-.catch(err => console.error("MongoDB Connection Failed:", err));
+.catch(err => {
+    console.error("MongoDB Connection Failed:", err);
+    process.exit(1);
+});
 
 // Sample Schema & Model
 const UserSchema = new mongoose.Schema({
