@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "id": "9d8e102e-dc5c-4284-b4cb-a5c0ca5e12f0",
+      "name": "Ayaz Khan",
+      "email": "Ayaz@gmail.com"
+    },
+    {
+      "id": "ccfd2922-31b8-4455-8759-77295d358b7f",
+      "name": "Mohammad Wasif Dilfaroz Shaikh",
+      "email": "test@test.com"
+    },
+    {
+      "id": "3ce4135f-9d32-4562-a056-d105ccf2c896",
+      "name": "khanjaved",
+      "email": "javedalimohammad@gmail.com"
+    }
+  ]
+}
