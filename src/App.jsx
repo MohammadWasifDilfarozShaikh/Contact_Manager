@@ -1,58 +1,50 @@
 import React, { useState, useEffect } from "react";
-import Header from "./components/Header";
-import AddContactWrapper from "./components/AddContactWrapper"; // Wrapper for Class Component
-import ContactList from "./components/ContentList";
-import { v4 as uuidv4 } from "uuid";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./index.css";
+import Header from "./components/Header";
+import AddContact from "./components/AddContact";
+import ContactList from "./components/ContentList";
 import ContactDetails from "./components/ContactDetails";
-import api from "./api/contacts";
 import EditContact from "./components/EditContact";
-import './App.css'
+import api from "./api/contacts";
+import "./index.css";
+import "./App.css";
 
 const App = () => {
   const [contacts, setContacts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResult, setSearchResult] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
 
   // Fetch contacts from API
-  const retrieveContacts = async () => {
+  const fetchContacts = async () => {
     try {
-      const resp = await api.get("/users");
-      return resp.data;
+      const response = await api.get("/contacts");
+      setContacts(response.data);
     } catch (error) {
       console.error("Error fetching contacts:", error);
-      return [];
     }
   };
 
   useEffect(() => {
-    const fetchContacts = async () => {
-      const allContacts = await retrieveContacts();
-      if (allContacts) setContacts(allContacts);
-    };
     fetchContacts();
   }, []);
 
   // Add Contact
   const addContactHandler = async (contact) => {
-    const newContact = { id: uuidv4(), ...contact };
-
     try {
-      const resp = await api.post("/users", newContact);
-      setContacts((prevContacts) => [...prevContacts, resp.data]);
+      const response = await api.post("/contacts", contact);
+      setContacts((prevContacts) => [...prevContacts, response.data]);
     } catch (error) {
       console.error("Error adding contact:", error);
     }
   };
 
   // Update Contact
-  const updateContactHandler = async (contact) => {
+  const updateContactHandler = async (updatedContact) => {
     try {
-      const response = await api.put(`/users/${contact.id}`, contact);
+      const response = await api.put(`/contacts/${updatedContact._id}`, updatedContact);
       setContacts((prevContacts) =>
-        prevContacts.map((curElm) =>
-          curElm.id === contact.id ? { ...response.data } : curElm
+        prevContacts.map((contact) =>
+          contact._id === updatedContact._id ? response.data : contact
         )
       );
     } catch (error) {
@@ -61,27 +53,27 @@ const App = () => {
   };
 
   // Delete Contact
-  const deleteContact = async (id) => {
+  const deleteContactHandler = async (id) => {
     try {
-      await api.delete(`/users/${id}`);
-      setContacts((prevContacts) => prevContacts.filter((curElm) => curElm.id !== id));
+      await api.delete(`/contacts/${id}`);
+      setContacts((prevContacts) => prevContacts.filter((contact) => contact._id !== id));
     } catch (error) {
       console.error("Error deleting contact:", error);
     }
   };
 
   // Search Handler
-  const SearchHandler = (searchTerm) => {
-    setSearchTerm(searchTerm);
-    if (searchTerm !== "") {
-      const filteredContacts = contacts.filter((curElm) =>
-        Object.values(curElm).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    if (searchTerm) {
+      setFilteredContacts(
+        contacts.filter((contact) =>
+          Object.values(contact).join(" ").toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
-      setSearchResult(filteredContacts);
     } else {
-      setSearchResult(contacts);
+      setFilteredContacts(contacts);
     }
-  };
+  }, [searchTerm, contacts]);
 
   return (
     <Router>
@@ -92,15 +84,15 @@ const App = () => {
           path="/"
           element={
             <ContactList
-              contacts={searchTerm ? searchResult : contacts}
+              contacts={searchTerm ? filteredContacts : contacts}
               term={searchTerm}
-              searchKeyWord={SearchHandler}
-              getContactId={deleteContact}
+              searchKeyWord={setSearchTerm}
+              getContactId={deleteContactHandler}
             />
           }
         />
-        <Route path="/add" element={<AddContactWrapper addContactHandler={addContactHandler} />} />
-        <Route path="/edit" element={<EditContact updateContactHandler={updateContactHandler} />} />
+        <Route path="/add" element={<AddContact addContactHandler={addContactHandler} />} />
+        <Route path="/edit/:id" element={<EditContact updateContactHandler={updateContactHandler} />} />
         <Route path="/contact/:id" element={<ContactDetails />} />
       </Routes>
     </Router>

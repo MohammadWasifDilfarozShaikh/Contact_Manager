@@ -1,23 +1,33 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import ContactCard from './ContactCard';
-import { Link } from 'react-router-dom';
+import ContactCard from "./ContactCard";
+import { Link } from "react-router-dom";
 
-const ContentList = (props) => {
+const ContentList = ({ contacts = [], getContactId, searchKeyWord, term = "" }) => {
   const inputElement = useRef("");
 
   const deleteData = (id) => {
-    props.getContactId(id);
+    if (id) {
+      getContactId(id);
+    }
   };
 
   const getSearchTerm = () => {
-    props.searchKeyWord(inputElement.current.value);
+    if (inputElement.current) {
+      searchKeyWord(inputElement.current.value.trim());
+    }
   };
 
-  const renderContactList = props.contacts.map((CurElm) => (
-    <ContactCard contact={CurElm} clickHandler={deleteData} key={CurElm.id} />
-  ));
+  const renderContactList = useMemo(
+    () =>
+      contacts.length > 0
+        ? contacts.map((contact) => (
+            <ContactCard contact={contact} clickHandler={deleteData} key={contact.id || Math.random()} />
+          ))
+        : <p className="text-center text-muted">No Contact Available</p>,
+    [contacts]
+  );
 
   return (
     <div className="container mt-4">
@@ -37,7 +47,7 @@ const ContentList = (props) => {
           className="form-control"
           placeholder="Search Contacts"
           aria-label="Search Contacts"
-          defaultValue={props.term}
+          defaultValue={term}
           onChange={getSearchTerm}
         />
         <span className="input-group-text">
@@ -46,9 +56,7 @@ const ContentList = (props) => {
       </div>
 
       {/* Contact Cards List */}
-      <div>
-        {renderContactList.length > 0 ? renderContactList : <p className="text-center text-muted">No Contact Available</p>}
-      </div>
+      <div>{renderContactList}</div>
     </div>
   );
 };
